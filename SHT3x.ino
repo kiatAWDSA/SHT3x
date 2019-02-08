@@ -5,6 +5,7 @@
 */
 
 // the setup function runs once when you press reset or power the board
+#include <I2C.h>
 #include "SHT3x.h"
 void setup() {
 
