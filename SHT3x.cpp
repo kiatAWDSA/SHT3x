@@ -150,7 +150,7 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
       return SHT3X_STATUS_CORRUPT;
     }
   }
-  else if (i2cStatus == I2C_STATUS_ADDRESS_NACK)
+  else if (i2cStatus == I2C_STATUS_BEGIN_NACK)
   {
     // Received a NACK bit after sending out address byte, indicating the sensor is still performing the measurement.
     return SHT3X_STATUS_NOTREADY;
