@@ -113,7 +113,7 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
     {
       if (i2cWire_->available())
       {
-        dataBuffer[i] = i2cWire_->receive();
+        dataBuffer[i] = i2cWire_->getByte();
       }
       else
       { // Did not receive the expected amount of bytes
