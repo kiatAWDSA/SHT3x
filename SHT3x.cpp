@@ -19,14 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "SHT3x.h"
 
 // Initialize with only the custom i2c class
-SHT3x::SHT3x(I2C & i2cWire) : i2cWire_(&i2cWire)
+SHT3x::SHT3x(I2C * i2cWire) : i2cWire_(i2cWire)
 {
   // Default address to the base address
   changeAddress(false);
 }
 
 // Initialize with custom i2c class and set the state of address pin
-SHT3x::SHT3x(I2C & i2cWire, bool ADDRPinHigh) : i2cWire_(&i2cWire)
+SHT3x::SHT3x(I2C * i2cWire, bool ADDRPinHigh) : i2cWire_(i2cWire)
 {
   changeAddress(ADDRPinHigh);
 }

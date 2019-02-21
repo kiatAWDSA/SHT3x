@@ -25,8 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	#include "WProgram.h"
 #endif
 
-
-#endif
+#include <I2C.h>
 
 // Statuses/Errors returned by the functions in this class
 typedef enum
@@ -51,8 +50,8 @@ public:
     REP_HIG = 2
   } Repeatability;
 
-  SHT3x(I2C& i2cWire);
-  SHT3x(I2C& i2cWire, bool ADDRPinHigh);
+  SHT3x(I2C * i2cWire);
+  SHT3x(I2C * i2cWire, bool ADDRPinHigh);
   void changeAddress(bool ADDRPinHigh);
   SHT3X_STATUS triggerOneMeasurement(bool stretchClock, Repeatability repeatability);
   SHT3X_STATUS fetchMeasurement();
@@ -130,3 +129,6 @@ private:
 
   bool checkCRC(const uint8_t *data, uint8_t len, uint8_t oriCRC);
 };
+
+
+#endif
