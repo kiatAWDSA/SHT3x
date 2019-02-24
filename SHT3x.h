@@ -60,66 +60,66 @@ public:
 
 private:
   // The sensor has a "base" address that can be modified depending on the state of the ADDR pin (pin 2)
-  static const uint8_t BASE_ADDRESS = 0x44;
+  const uint8_t BASE_ADDRESS = 0x44;
 
   // Maximum duration (ms) needed to complete a measurement during the one-shot mode.
   // See datasheet Table 4.
-  static const uint8_t DURATION_HIGREP = 15;
-  static const uint8_t DURATION_MEDREP = 6;
-  static const uint8_t DURATION_LOWREP = 4;
+  const uint8_t DURATION_HIGREP = 15;
+  const uint8_t DURATION_MEDREP = 6;
+  const uint8_t DURATION_LOWREP = 4;
 
   // Number of bytes for I2C transmission
-  static const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
-  static const uint8_t BYTECOUNT_DAQ_TEMP   = 2;
-  static const uint8_t BYTECOUNT_DAQ_RH     = 2;
-  static const uint8_t BYTECOUNT_DAQ_CRC    = 1;
+  const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
+  const uint8_t BYTECOUNT_DAQ_TEMP   = 2;
+  const uint8_t BYTECOUNT_DAQ_RH     = 2;
+  const uint8_t BYTECOUNT_DAQ_CRC    = 1;
 
   /********************
    * DATA ACQUISITION *
    ********************/
   // One shot mode, clock stretching enabled
-  static const uint8_t COM_DAQ_ONE_STRETCH_MSB       = 0x2C;
-  static const uint8_t COM_DAQ_ONE_STRETCH_LSB_HIGREP   = 0x06;
-  static const uint8_t COM_DAQ_ONE_STRETCH_LSB_MEDREP = 0x0D;
-  static const uint8_t COM_DAQ_ONE_STRETCH_LSB_LOWREP = 0x10;
+  const uint8_t COM_DAQ_ONE_STRETCH_MSB       = 0x2C;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_HIGREP   = 0x06;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_MEDREP = 0x0D;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_LOWREP = 0x10;
 
   // One shot mode, clock stretching disabled
-  static const uint8_t COM_DAQ_ONE_NOSTRETCH_MSB       = 0x24;
-  static const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_HIGREP = 0x00;
-  static const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_MEDREP = 0x0B;
-  static const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_LOWREP = 0x16;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_MSB       = 0x24;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_HIGREP = 0x00;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_MEDREP = 0x0B;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_LOWREP = 0x16;
 
   // TODO: Only coding for single-shot mode, for now.....
   /*
   // Continuous mode, 0.5 measurement per second
-  static const uint8_t COM_DAQ_CON_HMPS_MSB = 0x20;
-  static const uint8_t COM_DAQ_CON_HMPS_LSB_HIGREP = 0x32;
-  static const uint8_t COM_DAQ_CON_HMPS_LSB_MEDREP = 0x24;
-  static const uint8_t COM_DAQ_CON_HMPS_LSB_LOWREP = 0x2F;
+  const uint8_t COM_DAQ_CON_HMPS_MSB = 0x20;
+  const uint8_t COM_DAQ_CON_HMPS_LSB_HIGREP = 0x32;
+  const uint8_t COM_DAQ_CON_HMPS_LSB_MEDREP = 0x24;
+  const uint8_t COM_DAQ_CON_HMPS_LSB_LOWREP = 0x2F;
 
   // Continuous mode, 1 measurement per second
-  static const uint8_t COM_DAQ_CON_1MPS_MSB = 0x21;
-  static const uint8_t COM_DAQ_CON_1MPS_LSB_HIGREP = 0x30;
-  static const uint8_t COM_DAQ_CON_1MPS_LSB_MEDREP = 0x26;
-  static const uint8_t COM_DAQ_CON_1MPS_LSB_LOWREP = 0x2D;
+  const uint8_t COM_DAQ_CON_1MPS_MSB = 0x21;
+  const uint8_t COM_DAQ_CON_1MPS_LSB_HIGREP = 0x30;
+  const uint8_t COM_DAQ_CON_1MPS_LSB_MEDREP = 0x26;
+  const uint8_t COM_DAQ_CON_1MPS_LSB_LOWREP = 0x2D;
 
   // Continuous mode, 2 measurements per second
-  static const uint8_t COM_DAQ_CON_2MPS_MSB = 0x22;
-  static const uint8_t COM_DAQ_CON_2MPS_LSB_HIGREP = 0x36;
-  static const uint8_t COM_DAQ_CON_2MPS_LSB_MEDREP = 0x20;
-  static const uint8_t COM_DAQ_CON_2MPS_LSB_LOWREP = 0x2B;
+  const uint8_t COM_DAQ_CON_2MPS_MSB = 0x22;
+  const uint8_t COM_DAQ_CON_2MPS_LSB_HIGREP = 0x36;
+  const uint8_t COM_DAQ_CON_2MPS_LSB_MEDREP = 0x20;
+  const uint8_t COM_DAQ_CON_2MPS_LSB_LOWREP = 0x2B;
 
   // Continuous mode, 4 measurements per second
-  static const uint8_t COM_DAQ_CON_4MPS_MSB = 0x23;
-  static const uint8_t COM_DAQ_CON_4MPS_LSB_HIGREP = 0x34;
-  static const uint8_t COM_DAQ_CON_4MPS_LSB_MEDREP = 0x22;
-  static const uint8_t COM_DAQ_CON_4MPS_LSB_LOWREP = 0x29;
+  const uint8_t COM_DAQ_CON_4MPS_MSB = 0x23;
+  const uint8_t COM_DAQ_CON_4MPS_LSB_HIGREP = 0x34;
+  const uint8_t COM_DAQ_CON_4MPS_LSB_MEDREP = 0x22;
+  const uint8_t COM_DAQ_CON_4MPS_LSB_LOWREP = 0x29;
 
   // Continuous mode, 10 measurements per second
-  static const uint8_t COM_DAQ_CON_10MPS_MSB = 0x27;
-  static const uint8_t COM_DAQ_CON_10MPS_LSB_HIGREP = 0x37;
-  static const uint8_t COM_DAQ_CON_10MPS_LSB_MEDREP = 0x21;
-  static const uint8_t COM_DAQ_CON_10MPS_LSB_LOWREP = 0x2A;
+  const uint8_t COM_DAQ_CON_10MPS_MSB = 0x27;
+  const uint8_t COM_DAQ_CON_10MPS_LSB_HIGREP = 0x37;
+  const uint8_t COM_DAQ_CON_10MPS_LSB_MEDREP = 0x21;
+  const uint8_t COM_DAQ_CON_10MPS_LSB_LOWREP = 0x2A;
   */
 
   I2C *i2cWire_;
