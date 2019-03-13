@@ -105,10 +105,9 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
   I2C_STATUS i2cStatus;
   i2cStatus = i2cWire_->read(i2cAddress_, BYTECOUNT_DAQ_TOTAL);
 
-  if (i2cStatus = I2C_STATUS_OK)
+  if (i2cStatus == I2C_STATUS_OK)
   { // Begin processing the signals
     // Grab data from I2C buffer
-    uint8_t dataBuffer[BYTECOUNT_DAQ_TOTAL];
     for (uint8_t i = 0; i < BYTECOUNT_DAQ_TOTAL; i++)
     {
       if (i2cWire_->available())
@@ -122,25 +121,28 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
     }
 
     // Organize the data
-    uint8_t tempBytes[BYTECOUNT_DAQ_TEMP] = { dataBuffer[BYTECOUNT_DAQ_TEMP-2], dataBuffer[BYTECOUNT_DAQ_TEMP-1] };
+    tempBuffer[0] = dataBuffer[BYTECOUNT_DAQ_TEMP - 2];
+    tempBuffer[1] = dataBuffer[BYTECOUNT_DAQ_TEMP - 1];
     uint8_t tempCRC = dataBuffer[BYTECOUNT_DAQ_TEMP];
-    uint8_t RHBytes[BYTECOUNT_DAQ_RH] = { dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH - 2], dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH - 1] };
+
+    RHBuffer[0] = dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH - 2];
+    RHBuffer[1] = dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH - 1];
     uint8_t RHCRC = dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH];
 
     // Perform CRC check on the RH and temperature bytes
-    if (checkCRC(tempBytes, BYTECOUNT_DAQ_TEMP, tempCRC) && checkCRC(RHBytes, BYTECOUNT_DAQ_RH, RHCRC))
+    if (checkCRC(tempBuffer, BYTECOUNT_DAQ_TEMP, tempCRC) && checkCRC(RHBuffer, BYTECOUNT_DAQ_RH, RHCRC))
     { // CRC check success; move on to convert signal into actual readings.
       // Refer to datasheet section 4.13.
       // Calculate temperature (degC; we're not imperial heathens)
-      uint16_t tempSignal = tempBytes[BYTECOUNT_DAQ_TEMP-2];
+      uint16_t tempSignal = tempBuffer[BYTECOUNT_DAQ_TEMP-2];
       tempSignal = tempSignal << 8;
-      tempSignal |= tempBytes[BYTECOUNT_DAQ_TEMP-1];
+      tempSignal |= tempBuffer[BYTECOUNT_DAQ_TEMP-1];
       temperature_ = -45 + tempSignal * 0.0026703; // The multiplier is 175/(2^16 - 1), rounded to account for precision of float in Arduino
 
       // Calculate relative humidity
-      uint16_t RHSignal = RHBytes[BYTECOUNT_DAQ_TEMP-2];
+      uint16_t RHSignal = RHBuffer[BYTECOUNT_DAQ_TEMP-2];
       RHSignal = RHSignal << 8;
-      RHSignal |= RHBytes[BYTECOUNT_DAQ_TEMP-1];
+      RHSignal |= RHBuffer[BYTECOUNT_DAQ_TEMP-1];
       relativeHumidity_ = RHSignal * 0.0015259; // The multiplier is 100/(2^16 - 1), rounded to account for precision of float in Arduino
 
       return SHT3X_STATUS_OK;

@@ -50,6 +50,12 @@ public:
     REP_HIG = 2
   } Repeatability;
 
+  // Maximum duration (ms) needed to complete a measurement during the one-shot mode.
+  // See datasheet Table 4.
+  static const uint8_t DURATION_HIGREP = 15;
+  static const uint8_t DURATION_MEDREP = 6;
+  static const uint8_t DURATION_LOWREP = 4;
+
   SHT3x(I2C * i2cWire);
   SHT3x(I2C * i2cWire, bool ADDRPinHigh);
   void changeAddress(bool ADDRPinHigh);
@@ -62,17 +68,16 @@ private:
   // The sensor has a "base" address that can be modified depending on the state of the ADDR pin (pin 2)
   const uint8_t BASE_ADDRESS = 0x44;
 
-  // Maximum duration (ms) needed to complete a measurement during the one-shot mode.
-  // See datasheet Table 4.
-  const uint8_t DURATION_HIGREP = 15;
-  const uint8_t DURATION_MEDREP = 6;
-  const uint8_t DURATION_LOWREP = 4;
-
   // Number of bytes for I2C transmission
-  const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
-  const uint8_t BYTECOUNT_DAQ_TEMP   = 2;
-  const uint8_t BYTECOUNT_DAQ_RH     = 2;
-  const uint8_t BYTECOUNT_DAQ_CRC    = 1;
+  static const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
+  static const uint8_t BYTECOUNT_DAQ_TEMP   = 2;
+  static const uint8_t BYTECOUNT_DAQ_RH     = 2;
+  static const uint8_t BYTECOUNT_DAQ_CRC    = 1;
+
+  // Data buffers
+  uint8_t dataBuffer[BYTECOUNT_DAQ_TOTAL];
+  uint8_t tempBuffer[BYTECOUNT_DAQ_TEMP];
+  uint8_t RHBuffer[BYTECOUNT_DAQ_RH];
 
   /********************
    * DATA ACQUISITION *
