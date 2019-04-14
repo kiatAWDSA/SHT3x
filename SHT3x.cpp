@@ -130,7 +130,7 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
     uint8_t RHCRC = dataBuffer[BYTECOUNT_DAQ_TEMP + BYTECOUNT_DAQ_CRC + BYTECOUNT_DAQ_RH];
 
     // Perform CRC check on the RH and temperature bytes
-    if (checkCRC(tempBuffer, BYTECOUNT_DAQ_TEMP, tempCRC) && checkCRC(RHBuffer, BYTECOUNT_DAQ_RH, RHCRC))
+    if (tempCRC == calcCRC(tempBuffer, BYTECOUNT_DAQ_TEMP) && RHCRC == calcCRC(RHBuffer, BYTECOUNT_DAQ_RH))
     { // CRC check success; move on to convert signal into actual readings.
       // Refer to datasheet section 4.13.
       // Calculate temperature (degC; we're not imperial heathens)
@@ -163,7 +163,14 @@ SHT3X_STATUS SHT3x::fetchMeasurement()
   }
 }
 
+// Returns the relative humidity to the caller after applying adjustments from the two-point calibration.
 double SHT3x::getRH()
+{
+  return slopeAdjustment_ * relativeHumidity_ + offset_;
+}
+
+// Returns the relative humidity without adjustments from the two-point calibration.
+double SHT3x::getRHRaw()
 {
   return relativeHumidity_;
 }
@@ -173,10 +180,32 @@ double SHT3x::getTemperature()
   return temperature_;
 }
 
+// Apply calibration to either point 1 or 2 depending on calPoint1, and
+// saves the calibration data into the EEPROM.
+void SHT3x::saveAndApplyCalibration(bool calPoint1, float RHRef, float RHRaw)
+{
+  uint8_t crc = calcCRCRefAndRaw(RHRef, RHRaw);
+
+  if (calPoint1)
+  {
+    EEPROM.put(EEPROM_ADDR_POINT1_CRC, crc);
+    EEPROM.put(EEPROM_ADDR_POINT1_RHREF, RHRef);
+    EEPROM.put(EEPROM_ADDR_POINT1_RHRAW, RHRaw);
+  }
+  else
+  {
+    EEPROM.put(EEPROM_ADDR_POINT2_CRC, crc);
+    EEPROM.put(EEPROM_ADDR_POINT2_RHREF, RHRef);
+    EEPROM.put(EEPROM_ADDR_POINT2_RHRAW, RHRaw);
+  }
+
+  calcRHAdj();
+}
+
 // Calculate the CRC checksum of the data bytes.
 // Adapted from the Arduino SHT library by Sensirion:
 // https://github.com/Sensirion/arduino-sht
-bool SHT3x::checkCRC(const uint8_t *data, uint8_t byteCount, uint8_t oriCRC)
+uint8_t SHT3x::calcCRC(const uint8_t *data, uint8_t byteCount)
 {
   uint8_t crc = 0xFF;
   for (uint8_t byteCtr = 0; byteCtr < byteCount; ++byteCtr) {
@@ -191,5 +220,88 @@ bool SHT3x::checkCRC(const uint8_t *data, uint8_t byteCount, uint8_t oriCRC)
     }
   }
 
-  return (crc == oriCRC);
+  return crc;
+}
+
+uint8_t SHT3x::calcCRCRefAndRaw(float RHRef, float RHRaw)
+{
+  uint8_t * RHRefBytes = (uint8_t *)&RHRef;
+  uint8_t * RHRawBytes = (uint8_t *)&RHRaw;
+  uint8_t combinedBytes[2 * sizeof(float)];
+
+  // Populate first half of entries with ref RH
+  for (uint8_t i = 0; i < sizeof(float); i++)
+  {
+    combinedBytes[i] = RHRefBytes[i];
+  }
+
+  // Populate second half of entries with raw RH
+  for (uint8_t i = sizeof(float); i < sizeof(combinedBytes); i++)
+  {
+    combinedBytes[i] = RHRawBytes[i - sizeof(float)];
+  }
+
+  return calcCRC(combinedBytes, sizeof(combinedBytes));
+}
+
+// Calculate the slope adjustment and offset based on the two-point calibration.
+// Automatically assigns default values if no saved data is available.
+void SHT3x::calcRHAdj()
+{
+  // Get the saved values for calibration data.
+  bool point1DataValid = false;
+  uint8_t CRCPoint1;
+  float RHPoint1Ref;
+  float RHPoint1Raw;
+  bool point2DataValid = false;
+  uint8_t CRCPoint2;
+  float RHPoint2Ref;
+  float RHPoint2Raw;
+  EEPROM.get(EEPROM_ADDR_POINT1_CRC, CRCPoint1);
+  EEPROM.get(EEPROM_ADDR_POINT1_RHRAW, RHPoint1Ref);
+  EEPROM.get(EEPROM_ADDR_POINT1_RHREF, RHPoint1Raw);
+  EEPROM.get(EEPROM_ADDR_POINT2_CRC, CRCPoint2);
+  EEPROM.get(EEPROM_ADDR_POINT2_RHRAW, RHPoint2Ref);
+  EEPROM.get(EEPROM_ADDR_POINT2_RHREF, RHPoint2Raw);
+
+  // Assign default values to facilitate subsequent calculations if there are
+  // no stored values or if the saved data are corrupted.
+  if (CRCPoint1 == calcCRCRefAndRaw(RHPoint1Ref, RHPoint1Raw))
+  {
+    point1DataValid = true;
+  }
+  else
+  {
+    RHPoint1Ref = RH_POINT1_DEFAULT;
+    RHPoint1Raw = RH_POINT1_DEFAULT;
+  }
+
+  if (CRCPoint2 == calcCRCRefAndRaw(RHPoint2Ref, RHPoint2Raw))
+  {
+    point2DataValid = true;
+  }
+  else
+  {
+    RHPoint1Ref = RH_POINT2_DEFAULT;
+    RHPoint1Raw = RH_POINT2_DEFAULT;
+  }
+
+  // Calculate the slope
+  slopeAdjustment_ = (RHPoint2Ref - RHPoint1Ref) / (RHPoint2Raw - RHPoint1Raw);
+
+  // Since the offset only requires one point, preferentially use a point that is valid rather
+  // than one that was forced to default value. If both points are valid, it doesn't matter
+  // which point is used due to the way the equations work.
+  if (point1DataValid)
+  {
+    offset_ = RHPoint1Ref - slopeAdjustment_ * RHPoint1Raw;
+  }
+  else if (point2DataValid)
+  {
+    offset_ = RHPoint2Ref - slopeAdjustment_ * RHPoint2Raw;
+  }
+  else
+  {
+    offset_ = 0;
+  }
 }

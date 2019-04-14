@@ -62,11 +62,26 @@ public:
   SHT3X_STATUS triggerOneMeasurement(bool stretchClock, Repeatability repeatability);
   SHT3X_STATUS fetchMeasurement();
   double getRH();
+  double getRHRaw();
   double getTemperature();
+  void saveAndApplyCalibration(bool calPoint1, float RHRef, float RHRaw);
 
 private:
   // The sensor has a "base" address that can be modified depending on the state of the ADDR pin (pin 2)
   const uint8_t BASE_ADDRESS = 0x44;
+
+  // EEPROM storage locations for two-point calibration data.
+  // Note that float values (ref and raw RH) take up 4 bytes.
+  const uint8_t EEPROM_ADDR_POINT1_CRC    = 10;
+  const uint8_t EEPROM_ADDR_POINT1_RHREF  = 11;
+  const uint8_t EEPROM_ADDR_POINT1_RHRAW  = 16;
+  const uint8_t EEPROM_ADDR_POINT2_CRC    = 20;
+  const uint8_t EEPROM_ADDR_POINT2_RHREF  = 21;
+  const uint8_t EEPROM_ADDR_POINT2_RHRAW  = 26;
+
+  // Default values for two-point calibration
+  const float RH_POINT1_DEFAULT = 25;
+  const float RH_POINT2_DEFAULT = 76;
 
   // Number of bytes for I2C transmission
   static const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
@@ -131,8 +146,12 @@ private:
   uint8_t i2cAddress_;
   double relativeHumidity_;
   double temperature_;
+  float slopeAdjustment_;
+  float offset_;
 
-  bool checkCRC(const uint8_t *data, uint8_t len, uint8_t oriCRC);
+  uint8_t calcCRC(const uint8_t *data, uint8_t len);
+  uint8_t calcCRCRefAndRaw(float RHRef, float RHRaw);
+  void calcRHAdj();
 };
 
 
