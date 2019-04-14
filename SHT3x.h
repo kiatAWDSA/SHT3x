@@ -30,11 +30,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Statuses/Errors returned by the functions in this class
 typedef enum
 {
-  SHT3X_STATUS_OK = 0,  // No problemo.
-  SHT3X_STATUS_FAIL = 1,  // Something went wrong.
-  SHT3X_STATUS_NOTREADY = 2,  // The sensor is not ready to send out data.
-  SHT3X_STATUS_CORRUPT = 3,   // Either the relative humidity or temperature bytes failed the CRC check.
-  SHT3X_STATUS_DATA_LESS  = 4,  // Received less data bytes than expected.
+  SHT3X_STATUS_OK         = 0,  // No problemo.
+  SHT3X_STATUS_FAIL       = 1,  // Something went wrong.
+  SHT3X_STATUS_NOTREADY   = 2,  // The sensor is not ready to send out data.
+  SHT3X_STATUS_CORRUPT    = 3,  // Either the relative humidity or temperature bytes failed the CRC check.
+  SHT3X_STATUS_DATA_LESS  = 4   // Received less data bytes than expected.
 } SHT3X_STATUS;
 
 
@@ -98,16 +98,16 @@ private:
    * DATA ACQUISITION *
    ********************/
   // One shot mode, clock stretching enabled
-  const uint8_t COM_DAQ_ONE_STRETCH_MSB       = 0x2C;
-  const uint8_t COM_DAQ_ONE_STRETCH_LSB_HIGREP   = 0x06;
-  const uint8_t COM_DAQ_ONE_STRETCH_LSB_MEDREP = 0x0D;
-  const uint8_t COM_DAQ_ONE_STRETCH_LSB_LOWREP = 0x10;
+  const uint8_t COM_DAQ_ONE_STRETCH_MSB         = 0x2C;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_HIGREP  = 0x06;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_MEDREP  = 0x0D;
+  const uint8_t COM_DAQ_ONE_STRETCH_LSB_LOWREP  = 0x10;
 
   // One shot mode, clock stretching disabled
-  const uint8_t COM_DAQ_ONE_NOSTRETCH_MSB       = 0x24;
-  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_HIGREP = 0x00;
-  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_MEDREP = 0x0B;
-  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_LOWREP = 0x16;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_MSB         = 0x24;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_HIGREP  = 0x00;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_MEDREP  = 0x0B;
+  const uint8_t COM_DAQ_ONE_NOSTRETCH_LSB_LOWREP  = 0x16;
 
   // TODO: Only coding for single-shot mode, for now.....
   /*

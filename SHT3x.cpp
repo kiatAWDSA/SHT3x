@@ -223,6 +223,7 @@ uint8_t SHT3x::calcCRC(const uint8_t *data, uint8_t byteCount)
   return crc;
 }
 
+// Calculate the CRC value for the given reference and raw relative humidity values.
 uint8_t SHT3x::calcCRCRefAndRaw(float RHRef, float RHRaw)
 {
   uint8_t * RHRefBytes = (uint8_t *)&RHRef;
