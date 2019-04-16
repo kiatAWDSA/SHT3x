@@ -23,12 +23,14 @@ SHT3x::SHT3x(I2C * i2cWire) : i2cWire_(i2cWire)
 {
   // Default address to the base address
   changeAddress(false);
+  calcRHAdj();
 }
 
 // Initialize with custom i2c class and set the state of address pin
 SHT3x::SHT3x(I2C * i2cWire, bool ADDRPinHigh) : i2cWire_(i2cWire)
 {
   changeAddress(ADDRPinHigh);
+  calcRHAdj();
 }
 
 void SHT3x::changeAddress(bool ADDRPinHigh)
@@ -180,6 +182,48 @@ double SHT3x::getTemperature()
   return temperature_;
 }
 
+// Grabs saved calibration data and places it in the given buffers.
+// If no data is available or the data is corrupt, returns false and places
+// default data into the buffers.
+bool SHT3x::getSavedCalibration(bool point1, float * RHOutputRef, float * RHOutputRaw)
+{
+  uint8_t crc;
+
+  if (point1)
+  {
+    EEPROM.get(EEPROM_ADDR_POINT1_CRC, crc);
+    EEPROM.get(EEPROM_ADDR_POINT1_RHREF, *RHOutputRef);
+    EEPROM.get(EEPROM_ADDR_POINT1_RHRAW, *RHOutputRaw);
+  }
+  else
+  {
+    EEPROM.get(EEPROM_ADDR_POINT2_CRC, crc);
+    EEPROM.get(EEPROM_ADDR_POINT2_RHREF, *RHOutputRef);
+    EEPROM.get(EEPROM_ADDR_POINT2_RHRAW, *RHOutputRaw);
+  }
+
+  // Assign default values to facilitate subsequent calculations if there are
+  // no stored values or if the saved data are corrupted.
+  if (crc == calcCRCRefAndRaw(*RHOutputRef, *RHOutputRaw))
+  {// Already stored the correct values into the output
+    return true;
+  }
+  else
+  {
+    if (point1)
+    {
+      *RHOutputRef = RH_POINT1_DEFAULT;
+      *RHOutputRaw = RH_POINT1_DEFAULT;
+    }
+    else
+    {
+      *RHOutputRef = RH_POINT2_DEFAULT;
+      *RHOutputRaw = RH_POINT2_DEFAULT;
+    }
+    return false;
+  }
+}
+
 // Apply calibration to either point 1 or 2 depending on calPoint1, and
 // saves the calibration data into the EEPROM.
 void SHT3x::saveAndApplyCalibration(bool calPoint1, float RHRef, float RHRaw)
@@ -200,6 +244,17 @@ void SHT3x::saveAndApplyCalibration(bool calPoint1, float RHRef, float RHRaw)
   }
 
   calcRHAdj();
+}
+
+// Overwrites all the saved calibration data with zeroes.
+void SHT3x::resetCalibration()
+{
+  EEPROM.write(EEPROM_ADDR_POINT1_CRC, 0);
+  EEPROM.write(EEPROM_ADDR_POINT1_RHREF, 0);
+  EEPROM.write(EEPROM_ADDR_POINT1_RHRAW, 0);
+  EEPROM.write(EEPROM_ADDR_POINT2_CRC, 0);
+  EEPROM.write(EEPROM_ADDR_POINT2_RHREF, 0);
+  EEPROM.write(EEPROM_ADDR_POINT2_RHRAW, 0);
 }
 
 // Calculate the CRC checksum of the data bytes.
@@ -250,42 +305,14 @@ uint8_t SHT3x::calcCRCRefAndRaw(float RHRef, float RHRaw)
 void SHT3x::calcRHAdj()
 {
   // Get the saved values for calibration data.
-  bool point1DataValid = false;
-  uint8_t CRCPoint1;
   float RHPoint1Ref;
   float RHPoint1Raw;
-  bool point2DataValid = false;
-  uint8_t CRCPoint2;
   float RHPoint2Ref;
   float RHPoint2Raw;
-  EEPROM.get(EEPROM_ADDR_POINT1_CRC, CRCPoint1);
-  EEPROM.get(EEPROM_ADDR_POINT1_RHRAW, RHPoint1Ref);
-  EEPROM.get(EEPROM_ADDR_POINT1_RHREF, RHPoint1Raw);
-  EEPROM.get(EEPROM_ADDR_POINT2_CRC, CRCPoint2);
-  EEPROM.get(EEPROM_ADDR_POINT2_RHRAW, RHPoint2Ref);
-  EEPROM.get(EEPROM_ADDR_POINT2_RHREF, RHPoint2Raw);
 
-  // Assign default values to facilitate subsequent calculations if there are
-  // no stored values or if the saved data are corrupted.
-  if (CRCPoint1 == calcCRCRefAndRaw(RHPoint1Ref, RHPoint1Raw))
-  {
-    point1DataValid = true;
-  }
-  else
-  {
-    RHPoint1Ref = RH_POINT1_DEFAULT;
-    RHPoint1Raw = RH_POINT1_DEFAULT;
-  }
-
-  if (CRCPoint2 == calcCRCRefAndRaw(RHPoint2Ref, RHPoint2Raw))
-  {
-    point2DataValid = true;
-  }
-  else
-  {
-    RHPoint1Ref = RH_POINT2_DEFAULT;
-    RHPoint1Raw = RH_POINT2_DEFAULT;
-  }
+  // Get the stored values, if any.
+  bool point1DataValid = getSavedCalibration(true, &RHPoint1Ref, &RHPoint1Raw);
+  bool point2DataValid = getSavedCalibration(false, &RHPoint2Ref, &RHPoint2Raw);
 
   // Calculate the slope
   slopeAdjustment_ = (RHPoint2Ref - RHPoint1Ref) / (RHPoint2Raw - RHPoint1Raw);

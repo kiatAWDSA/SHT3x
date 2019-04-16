@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	#include "WProgram.h"
 #endif
 
+#include <EEPROM.h>
 #include <I2C.h>
 
 // Statuses/Errors returned by the functions in this class
@@ -64,7 +65,9 @@ public:
   double getRH();
   double getRHRaw();
   double getTemperature();
+  bool getSavedCalibration(bool point1, float * RHOutputRef, float * RHOutputRaw);
   void saveAndApplyCalibration(bool calPoint1, float RHRef, float RHRaw);
+  void resetCalibration();
 
 private:
   // The sensor has a "base" address that can be modified depending on the state of the ADDR pin (pin 2)
@@ -73,15 +76,15 @@ private:
   // EEPROM storage locations for two-point calibration data.
   // Note that float values (ref and raw RH) take up 4 bytes.
   const uint8_t EEPROM_ADDR_POINT1_CRC    = 10;
-  const uint8_t EEPROM_ADDR_POINT1_RHREF  = 11;
+  const uint8_t EEPROM_ADDR_POINT1_RHREF  = 12;
   const uint8_t EEPROM_ADDR_POINT1_RHRAW  = 16;
   const uint8_t EEPROM_ADDR_POINT2_CRC    = 20;
-  const uint8_t EEPROM_ADDR_POINT2_RHREF  = 21;
+  const uint8_t EEPROM_ADDR_POINT2_RHREF  = 22;
   const uint8_t EEPROM_ADDR_POINT2_RHRAW  = 26;
 
   // Default values for two-point calibration
-  const float RH_POINT1_DEFAULT = 25;
-  const float RH_POINT2_DEFAULT = 76;
+  const float RH_POINT1_DEFAULT = 1;
+  const float RH_POINT2_DEFAULT = 100;
 
   // Number of bytes for I2C transmission
   static const uint8_t BYTECOUNT_DAQ_TOTAL  = 6;
