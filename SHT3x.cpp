@@ -255,6 +255,8 @@ void SHT3x::resetCalibration()
   EEPROM.write(EEPROM_ADDR_POINT2_CRC, 0);
   EEPROM.write(EEPROM_ADDR_POINT2_RHREF, 0);
   EEPROM.write(EEPROM_ADDR_POINT2_RHRAW, 0);
+
+  calcRHAdj();
 }
 
 // Calculate the CRC checksum of the data bytes.
